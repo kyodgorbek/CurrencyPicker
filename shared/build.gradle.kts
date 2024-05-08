@@ -1,5 +1,3 @@
-
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
@@ -40,7 +38,7 @@ kotlin {
         }
         commonMain.dependencies {
             implementation("io.ktor:ktor-client-logging:2.3.9")
-            implementation ("co.touchlab:kermit:2.0.3")
+            implementation("co.touchlab:kermit:2.0.3")
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
@@ -67,18 +65,40 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.stately.common)
 
+            implementation("io.mockk:mockk-common:1.12.0")  // Use the latest version suitable for KMM
+            // implementation("junit:junit:4.13.2")
+            implementation(libs.kotlin.test)
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+            implementation("org.jetbrains.kotlin:kotlin-test-common")
+            implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
 
 
-
-
-
-
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test-common"))
+            implementation(kotlin("test-annotations-common"))
+            implementation("io.mockk:mockk-common:1.12.0")
+            implementation("org.jetbrains.kotlin:kotlin-test-junit")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
+        jvmTest.dependencies {
+            commonTest
+            implementation("io.kotlintest:kotlintest-runner-junit5:3.3.2")
+            implementation("org.jetbrains.kotlin:kotlin-reflect:${libs.kotlin}")
+            implementation("org.jetbrains.kotlin:kotlin-test-junit")
+            implementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
+
+            implementation("org.junit.jupiter:junit-jupiter-params:5.5.2")
+        }
+
+
     }
 }
+
+
 
 android {
     namespace = "org.example.currency"
@@ -116,4 +136,10 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:+")
     implementation("androidx.core:core-ktx:+")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.3")
+    testImplementation(libs.kotlin.test)
+    testImplementation("org.jetbrains.kotlin:kotlin-test-common")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 }

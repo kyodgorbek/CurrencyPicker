@@ -1,12 +1,15 @@
 package com.example.currency.domain.model
 
+import io.realm.kotlin.types.RealmObject
+import io.realm.kotlin.types.annotations.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.mongodb.kbson.ObjectId
 
 
 @Serializable
 data class ApiResponse(
-    val metadata: MetaData,
+    val meta: MetaData,
     val data: Map<String, Currency>
 )
 @Serializable
@@ -15,8 +18,13 @@ data class MetaData(
     val lastUpdatedAt: String
 )
 @Serializable
-data class Currency(
+open class Currency(
 
-    var code: String,
-    var value: Double
-)
+
+):RealmObject{
+    @PrimaryKey
+    var _id:ObjectId = ObjectId()
+    var code: String = ""
+    var value: Double = 0.0
+
+}
