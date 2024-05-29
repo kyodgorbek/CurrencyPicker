@@ -10,9 +10,18 @@
 
 - Compose Multiplatform:** Shared logic across Android and ios platforms, ensuring consistency and reducing duplication.
 
-- Dependency Injection:** Utilizes Koin for dependency injection.
 
-- Networking:** Implements Ktor for HTTP client functionality.
+ <h1> Dependencies <h1/>
+The project uses several libraries and tools to enhance functionality and maintainability:
+
+- Koin: For dependency injection.
+
+- Ktor: For networking and HTTP client functionality.
+- Multiplatform Settings: For managing application settings.
+- Voyager: For navigation.
+- Kotlinx Datetime: For date and time handling.
+- MongoDB Realm: For database management.
+- Stately Common: For state management in a multiplatform context.
 
 
 <p align="center">
