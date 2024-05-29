@@ -12,7 +12,8 @@
 
 
  <h1> Dependencies <h1/>
-The project uses several libraries and tools to enhance functionality and maintainability:
+
+  The project uses several libraries and tools to enhance functionality and maintainability:
 
 - Koin: For dependency injection.
 
