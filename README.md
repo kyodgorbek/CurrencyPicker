@@ -1,4 +1,4 @@
-<h1>CurrencyPicker Kotlin Multiplatform App</h1> 
+<h1>CurrencyPicker Compose Multiplatform App</h1> 
 
 <h1>Features</h1>
 
@@ -8,7 +8,7 @@
 
 - User-Friendly Interface:** Intuitive and easy-to-navigate UI.
 
-- Kotlin Multiplatform:** Shared logic across Android and other platforms, ensuring consistency and reducing duplication.
+- Compose Multiplatform:** Shared logic across Android and ios platforms, ensuring consistency and reducing duplication.
 
 - Dependency Injection:** Utilizes Koin for dependency injection.
 
