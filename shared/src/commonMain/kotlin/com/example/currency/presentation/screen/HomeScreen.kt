@@ -14,6 +14,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -26,6 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
+import com.example.currency.domain.model.CurrencyType
+import com.example.currency.presentation.components.CurrencyPickerDialog
+import com.example.currency.presentation.components.HomeBody
 import com.example.currency.presentation.components.HomeHeader
 import surfaceColor
 
@@ -37,6 +41,41 @@ class HomeScreen : Screen {
         val sourceCurrency by viewModel.sourceCurrency
         val targetCurrency by viewModel.targetCurrency
         var amount by rememberSaveable { mutableStateOf(0.0) }
+        var selectedCurrencyType: CurrencyType by remember {
+            mutableStateOf(CurrencyType.None)
+        }
+        var dialogOpened by remember { mutableStateOf(false) }
+        val allCurrencies = viewModel.allCurrencies
+
+        if (dialogOpened && selectedCurrencyType != CurrencyType.None) {
+            CurrencyPickerDialog(
+                currencies = allCurrencies,
+                currencyType = selectedCurrencyType,
+                onConfirmClick = { currencyCode ->
+                    if (selectedCurrencyType is CurrencyType.Source) {
+                        viewModel.sendEvent(
+                            HomeUiEvent.SaveSourceCurrencyCode(
+                                code = currencyCode.name
+                            )
+                        )
+                    } else if (selectedCurrencyType is CurrencyType.Target) {
+                        viewModel.sendEvent(
+                            HomeUiEvent.SaveTargetCurrencyCode(
+                                code = currencyCode.name
+                            )
+                        )
+                    }
+                    selectedCurrencyType = CurrencyType.None
+                    dialogOpened = false
+                },
+                onDismiss = {
+                    selectedCurrencyType = CurrencyType.None
+                    dialogOpened = false
+                }
+            )
+
+
+        }
         Column(
             modifier = Modifier.fillMaxSize()
                 .background(surfaceColor)
@@ -47,17 +86,23 @@ class HomeScreen : Screen {
                 source = sourceCurrency,
                 target = targetCurrency,
                 amount = amount,
-                onAmountChange = {amount = it},
+                onAmountChange = { amount = it },
                 onRatesRefresh = {
                     viewModel.sendEvent(
                         HomeUiEvent.RefreshRates
                     )
                 },
-                onSwitchClick = {
-                    viewModel.sendEvent(HomeUiEvent.SwitchCurrencies)
-
+                onSwitchClick = { viewModel.sendEvent(HomeUiEvent.SwitchCurrencies) },
+                onCurrencyTypeSelect = { currencyType ->
+                    selectedCurrencyType = currencyType
+                    dialogOpened = true
                 }
 
+            )
+            HomeBody(
+                source =  sourceCurrency,
+                target = targetCurrency,
+                amount = amount
             )
 
         }

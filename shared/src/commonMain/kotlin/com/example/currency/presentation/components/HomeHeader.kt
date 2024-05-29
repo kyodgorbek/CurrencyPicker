@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.currency.domain.model.Currency
 import com.example.currency.domain.model.CurrencyCode
+import com.example.currency.domain.model.CurrencyType
 import com.example.currency.domain.model.DisplayResult
 import com.example.currency.domain.model.RateStatus
 import com.example.currency.domain.model.RequestState
@@ -57,9 +58,10 @@ fun HomeHeader(
     onAmountChange: (Double) -> Unit,
     onRatesRefresh: () -> Unit,
     onSwitchClick: () -> Unit,
+    onCurrencyTypeSelect: (CurrencyType) -> Unit
 
 
-) {
+    ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -77,11 +79,14 @@ fun HomeHeader(
         CurrencyInputs(
             source = source,
             target = target,
-            onSwitchClick = onSwitchClick
+            onSwitchClick = onSwitchClick,
+            onCurrencyTypeSelect = onCurrencyTypeSelect
         )
         Spacer(modifier = Modifier.height(24.dp))
-        AmountInput(amount = amount,
-            onAmountChange = onAmountChange)
+        AmountInput(
+            amount = amount,
+            onAmountChange = onAmountChange
+        )
 
 
     }
@@ -140,7 +145,8 @@ fun RatesStatus(
 fun CurrencyInputs(
     source: RequestState<Currency>,
     target: RequestState<Currency>,
-    onSwitchClick: () -> Unit
+    onSwitchClick: () -> Unit,
+    onCurrencyTypeSelect: (CurrencyType) -> Unit
 
 ) {
     var animationStarted by remember { mutableStateOf(false) }
@@ -156,6 +162,13 @@ fun CurrencyInputs(
             placeholder = "from",
             currency = source,
             onClick = {
+              if(source.isSuccess()){
+                  onCurrencyTypeSelect(
+                      CurrencyType.Source(
+                          currencyCode = CurrencyCode.valueOf(source.getSuccessData().code)
+                      )
+                  )
+              }
 
             }
         )
@@ -164,12 +177,12 @@ fun CurrencyInputs(
             modifier = Modifier
                 .padding(top = 24.dp)
                 .graphicsLayer {
-                  rotationY = animatedRotation
+                    rotationY = animatedRotation
                 },
 
             onClick = {
                 animationStarted = !animationStarted
-                    onSwitchClick
+                onSwitchClick()
             }
         ) {
             Icon(
@@ -183,6 +196,13 @@ fun CurrencyInputs(
             placeholder = "to",
             currency = target,
             onClick = {
+                if(target.isSuccess()){
+                    onCurrencyTypeSelect(
+                        CurrencyType.Target(
+                            currencyCode = CurrencyCode.valueOf(source.getSuccessData().code)
+                        )
+                    )
+                }
 
             }
         )

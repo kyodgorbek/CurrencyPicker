@@ -13,44 +13,43 @@ import com.example.currency.domain.model.Currency
 import com.example.currency.domain.model.RateStatus
 import com.example.currency.domain.model.RequestState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 
 
-sealed class HomeUiEvent{
-    data object RefreshRates:HomeUiEvent()
-    data object SwitchCurrencies:HomeUiEvent()
+sealed class HomeUiEvent {
+    data object RefreshRates : HomeUiEvent()
+    data object SwitchCurrencies : HomeUiEvent()
+    data class SaveSourceCurrencyCode(val code: String) : HomeUiEvent()
+    data class SaveTargetCurrencyCode(val code: String) : HomeUiEvent()
 }
+
 class HomeViewModel(
     private val preferences: PreferencesRepository,
     private val mongoDb: MongoRepository,
-    private val api:CurrencyApiService
-):ScreenModel {
-    private var _rateStatus: MutableState<RateStatus> =
-        mutableStateOf(RateStatus.Idle)
+    private val api: CurrencyApiService
+) : ScreenModel {
+    private var _rateStatus: MutableState<RateStatus> = mutableStateOf(RateStatus.Idle)
     val rateStatus: State<RateStatus> = _rateStatus
 
     private var _allCurrencies = mutableStateListOf<Currency>()
     val allCurrencies: List<Currency> = _allCurrencies
-    var _sourceCurrency: MutableState<RequestState<Currency>> =
-        mutableStateOf(RequestState.Idle)
+
+    private var _sourceCurrency: MutableState<RequestState<Currency>> = mutableStateOf(RequestState.Idle)
     val sourceCurrency: State<RequestState<Currency>> = _sourceCurrency
 
-    var _targetCurrency: MutableState<RequestState<Currency>> =
-        mutableStateOf(RequestState.Idle)
+    private var _targetCurrency: MutableState<RequestState<Currency>> = mutableStateOf(RequestState.Idle)
     val targetCurrency: State<RequestState<Currency>> = _targetCurrency
+
     init {
         screenModelScope.launch {
             fetchNewRates()
             readSourceCurrency()
             readTargetCurrency()
-
-
-
         }
-
     }
 
     fun sendEvent(event: HomeUiEvent) {
@@ -60,15 +59,17 @@ class HomeViewModel(
                     fetchNewRates()
                 }
             }
-            is HomeUiEvent.SwitchCurrencies ->{
-                screenModelScope.launch {
-                    switchCurrencies()
-                }
+            is HomeUiEvent.SwitchCurrencies -> {
+                switchCurrencies()
+            }
+            is HomeUiEvent.SaveSourceCurrencyCode -> {
+                saveSourceCurrencyCode(event.code)
+            }
+            is HomeUiEvent.SaveTargetCurrencyCode -> {
+                saveTargetCurrencyCode(event.code)
             }
         }
     }
-
-
 
     private fun readSourceCurrency() {
         screenModelScope.launch(Dispatchers.Main) {
@@ -95,26 +96,22 @@ class HomeViewModel(
             }
         }
     }
+
     suspend fun fetchNewRates() {
         try {
             val localCache = mongoDb.readCurrencyData().first()
             if (localCache.isSuccess()) {
                 if (localCache.getSuccessData().isNotEmpty()) {
-                    println("HomeViewModel: DATABASE IS FULL")
-                    //  _allCurrencies.clear()
+                    _allCurrencies.clear()
                     _allCurrencies.addAll(localCache.getSuccessData())
                     if (!preferences.isDataFresh(Clock.System.now().toEpochMilliseconds())) {
-                        println("HomeViewModel: DATA NOT FRESH")
                         cacheTheData()
-                    } else {
-                        println("HomeViewModel: DATA IS FRESH")
                     }
                 } else {
-                    println("HomeViewModel: DATABASE NEEDS DATA")
                     cacheTheData()
                 }
             } else if (localCache.isError()) {
-                println("HomeViewModel: ERROR READING LOCAL DATABASE ${localCache.getErrorMessage()}")
+                println("Error reading local database: ${localCache.getErrorMessage()}")
             }
             getRateStatus()
         } catch (e: Exception) {
@@ -122,21 +119,20 @@ class HomeViewModel(
         }
     }
 
-
-    private suspend fun cacheTheData(){
+    private suspend fun cacheTheData() {
         val fetchData = api.getLatestExchangeRate()
         if (fetchData.isSuccess()) {
             mongoDb.cleanUp()
             fetchData.getSuccessData().forEach {
-                println("HomeViewModel: Adding {${it.code}}")
                 mongoDb.insertCurrencyData(it)
             }
-            println("HomeViewModel: Updating _allCurrencies")
+            _allCurrencies.clear()
             _allCurrencies.addAll(fetchData.getSuccessData())
         } else if (fetchData.isError()) {
-            println("HomeViewModel: FETCHING FAILED ${fetchData.getErrorMessage()}")
+            println("Fetching failed: ${fetchData.getErrorMessage()}")
         }
     }
+
     private suspend fun getRateStatus() {
         _rateStatus.value = if (preferences.isDataFresh(
                 currentTimestamp = Clock.System.now().toEpochMilliseconds()
@@ -144,10 +140,24 @@ class HomeViewModel(
         ) RateStatus.Fresh
         else RateStatus.Stale
     }
+
     private fun switchCurrencies() {
-       val source = _sourceCurrency.value
+        val source = _sourceCurrency.value
         val target = _targetCurrency.value
         _sourceCurrency.value = target
         _targetCurrency.value = source
+        println("Switched currencies: source = ${_sourceCurrency.value}, target = ${_targetCurrency.value}")
+    }
+
+    private fun saveSourceCurrencyCode(code: String) {
+        screenModelScope.launch(Dispatchers.IO) {
+            preferences.saveSourceCurrencyCode(code)
+        }
+    }
+
+    private fun saveTargetCurrencyCode(code: String) {
+        screenModelScope.launch(Dispatchers.IO) {
+            preferences.saveTargetCurrencyCode(code)
+        }
     }
 }
