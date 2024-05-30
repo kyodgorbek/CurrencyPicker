@@ -78,8 +78,14 @@ class HomeViewModelTest {
 
         viewModel.sendEvent(HomeUiEvent.SwitchCurrencies)
 
-        assertEquals("USD", viewModel.sourceCurrency.value.getSuccessData().code)
-        assertEquals("EUR", viewModel.targetCurrency.value.getSuccessData().code)
+        // Check if the source currency is now the initial target currency
+        assertEquals("EUR", viewModel.sourceCurrency.value.getSuccessData().code)
+        assertEquals(0.85, viewModel.sourceCurrency.value.getSuccessData().value, 0.0)
+
+        // Check if the target currency is now the initial source currency
+        assertEquals("USD", viewModel.targetCurrency.value.getSuccessData().code)
+        assertEquals(1.0, viewModel.targetCurrency.value.getSuccessData().value, 0.0)
     }
+
 
 }
