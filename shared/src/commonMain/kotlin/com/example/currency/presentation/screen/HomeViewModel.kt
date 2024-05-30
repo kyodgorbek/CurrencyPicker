@@ -38,10 +38,10 @@ class HomeViewModel(
     private var _allCurrencies = mutableStateListOf<Currency>()
     val allCurrencies: List<Currency> = _allCurrencies
 
-    var _sourceCurrency: MutableState<RequestState<Currency>> = mutableStateOf(RequestState.Idle)
+    private var _sourceCurrency: MutableState<RequestState<Currency>> = mutableStateOf(RequestState.Idle)
     val sourceCurrency: State<RequestState<Currency>> = _sourceCurrency
 
-    var _targetCurrency: MutableState<RequestState<Currency>> = mutableStateOf(RequestState.Idle)
+    private var _targetCurrency: MutableState<RequestState<Currency>> = mutableStateOf(RequestState.Idle)
     val targetCurrency: State<RequestState<Currency>> = _targetCurrency
 
     init {

@@ -38,7 +38,6 @@ import com.example.currency.domain.model.CurrencyType
 import com.example.currency.domain.model.DisplayResult
 import com.example.currency.domain.model.RateStatus
 import com.example.currency.domain.model.RequestState
-import com.example.currency.getPlatform
 import com.example.currency.presentation.screen.AmountInput
 import com.example.currency.util.displayCurrentDateTime
 import currency.shared.generated.resources.Res
@@ -68,7 +67,6 @@ fun HomeHeader(
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
             .background(headerColor)
-            .padding(top = if (getPlatform().name == "Android") 0.dp else 24.dp)
             .padding(24.dp)
 
     ) {
